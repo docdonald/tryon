@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from 'react'
-import { Upload, Camera, X, Image } from 'lucide-react'
-import { Button } from './ui/Button'
+import { Upload, Camera, X } from 'lucide-react'
+import { Button } from './ui/button'
 
 interface PhotoUploaderProps {
   label: string

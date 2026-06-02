@@ -1,6 +1,6 @@
 import { Card, CardContent } from '@/components/ui/card';
-import { Settings2, Sparkles, Zap, Upload, Shirt, Camera } from 'lucide-react';
-import { ReactNode, useCallback } from 'react';
+import { Upload, Shirt, Camera } from 'lucide-react';
+import { useCallback } from 'react';
 import Pricing from './Pricing';
 
 interface FeaturesProps {
@@ -52,7 +52,7 @@ export function Features({
   }, []);
 
   const UploadCard = ({ icon: Icon, title, value, onChange }: { 
-    icon: React.ComponentType<{ className?: string; 'aria-hidden'?: boolean }>;
+    icon: React.ComponentType<any>;
     title: string;
     value: string | null;
     onChange: (image: string | null) => void;

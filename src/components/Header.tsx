@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { User, LogOut, History, Sparkles } from 'lucide-react'
-import { Button } from './ui/Button'
+import { Button } from './ui/button'
 import { supabase } from '../lib/supabase/client'
 
 interface HeaderProps {

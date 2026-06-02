@@ -48,8 +48,7 @@ export async function tryOnService(personImageUrl: string, clothingImageUrl: str
         'Authorization': `Bearer ${ARK_API_KEY}`
       },
       body: JSON.stringify(requestBody),
-      signal: controller.signal,
-      timeout: 120000
+      signal: controller.signal
     })
 
     clearTimeout(timeoutId)

@@ -1,8 +1,8 @@
 import { useState } from 'react'
-import { User, Lock, Mail, Eye, EyeOff } from 'lucide-react'
-import { Button } from './ui/Button'
-import { Input } from './ui/Input'
-import { Card, CardHeader, CardContent } from './ui/Card'
+import { Mail, Eye, EyeOff } from 'lucide-react'
+import { Button } from './ui/button'
+import { Input } from './ui/input'
+import { Card, CardHeader, CardContent } from './ui/card'
 
 interface AuthFormProps {
   onSuccess: () => void

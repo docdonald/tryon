@@ -1,7 +1,7 @@
-import { Button } from '@/components/ui/Button'
+import { Button } from '@/components/ui/button'
 import { Check } from 'lucide-react'
 import Link from 'next/link'
-import { Card, CardContent } from '@/components/ui/Card'
+import { Card, CardContent } from '@/components/ui/card'
 
 const pricingPlans = [
   {
