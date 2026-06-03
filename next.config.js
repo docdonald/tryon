@@ -1,13 +1,12 @@
+const path = require('path')
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
     domains: ['localhost', '*.supabase.co'],
   },
-  webpack: (config) => {
-    config.resolve.alias = {
-      ...config.resolve.alias,
-      '@': require('path').resolve(__dirname, './src'),
-    }
+  webpack: (config, { isServer }) => {
+    config.resolve.alias['@'] = path.resolve(__dirname, './src')
     return config
   },
 }
