@@ -1,4 +1,4 @@
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent } from './ui/card';
 import { Upload, Shirt, Camera } from 'lucide-react';
 import { useCallback } from 'react';
 import Pricing from './Pricing';

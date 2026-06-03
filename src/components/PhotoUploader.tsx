@@ -1,6 +1,5 @@
 import { useState, useRef, useCallback } from 'react'
-import { Upload, Camera, X } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { Upload, X } from 'lucide-react'
 
 interface PhotoUploaderProps {
   label: string
@@ -10,136 +9,106 @@ interface PhotoUploaderProps {
 }
 
 export function PhotoUploader({ label, value, onChange, isRequired = false }: PhotoUploaderProps) {
-  const [isCameraOpen, setIsCameraOpen] = useState(false)
-  const videoRef = useRef<HTMLVideoElement>(null)
-  const canvasRef = useRef<HTMLCanvasElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const [isDragging, setIsDragging] = useState(false)
 
-  const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      const reader = new FileReader()
-      reader.onload = (event) => {
-        onChange(event.target?.result as string)
-      }
-      reader.readAsDataURL(file)
-    }
-  }, [onChange])
-
-  const handleCameraStart = useCallback(() => {
-    setIsCameraOpen(true)
-    navigator.mediaDevices.getUserMedia({ video: true })
-      .then(stream => {
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream
-        }
-      })
-      .catch(() => {
-        alert('无法访问摄像头')
-        setIsCameraOpen(false)
-      })
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragging(true)
   }, [])
 
-  const handleCameraCapture = useCallback(() => {
-    if (videoRef.current && canvasRef.current) {
-      const canvas = canvasRef.current
-      const video = videoRef.current
-      canvas.width = video.videoWidth
-      canvas.height = video.videoHeight
-      const ctx = canvas.getContext('2d')
-      if (ctx) {
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
-        const base64 = canvas.toDataURL('image/jpeg')
-        onChange(base64)
-      }
-      setIsCameraOpen(false)
-      if (video.srcObject) {
-        const stream = video.srcObject as MediaStream
-        stream.getTracks().forEach(track => track.stop())
-      }
-    }
-  }, [onChange])
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragging(false)
+  }, [])
 
-  const handleCameraClose = useCallback(() => {
-    setIsCameraOpen(false)
-    if (videoRef.current?.srcObject) {
-      const stream = videoRef.current.srcObject as MediaStream
-      stream.getTracks().forEach(track => track.stop())
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragging(false)
+    
+    const files = e.dataTransfer.files
+    if (files && files.length > 0) {
+      handleFile(files[0])
     }
   }, [])
 
-  const handleClear = useCallback(() => {
+  const handleFile = useCallback((file: File) => {
+    if (!file.type.startsWith('image/')) {
+      alert('请上传图片文件')
+      return
+    }
+
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      const result = e.target?.result as string
+      onChange(result)
+    }
+    reader.readAsDataURL(file)
+  }, [onChange])
+
+  const handleClick = () => {
+    fileInputRef.current?.click()
+  }
+
+  const handleRemove = () => {
     onChange(null)
-    if (fileInputRef.current) {
-      fileInputRef.current.value = ''
-    }
-  }, [onChange])
+  }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2">
       <label className="block text-sm font-medium text-foreground">
-        {label} {isRequired && <span className="text-destructive">*</span>}
+        {label}
+        {isRequired && <span className="text-destructive ml-1">*</span>}
       </label>
       
-      {isCameraOpen ? (
-        <div className="relative aspect-video bg-black rounded-lg overflow-hidden">
-          <video
-            ref={videoRef}
-            autoPlay
-            playsInline
-            className="w-full h-full object-cover"
-          />
-          <canvas ref={canvasRef} className="hidden" />
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-4">
-            <Button variant="outline" onClick={handleCameraClose}>
-              <X className="w-4 h-4" />
-              取消
-            </Button>
-            <Button onClick={handleCameraCapture}>
-              <Camera className="w-4 h-4 mr-2" />
-              拍照
-            </Button>
-          </div>
-        </div>
-      ) : value ? (
-        <div className="relative aspect-square max-w-xs rounded-lg overflow-hidden border-2 border-dashed border-border bg-secondary">
+      {value ? (
+        <div className="relative aspect-square bg-muted rounded-lg overflow-hidden group">
           <img
             src={value}
             alt={label}
             className="w-full h-full object-contain"
           />
           <button
-            onClick={handleClear}
-            className="absolute top-2 right-2 p-1 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors"
+            onClick={handleRemove}
+            className="absolute top-2 right-2 p-2 bg-black/50 hover:bg-black/70 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
       ) : (
         <div
-          onClick={() => fileInputRef.current?.click()}
-          className="aspect-square max-w-xs rounded-lg border-2 border-dashed border-border bg-secondary hover:border-primary/50 hover:bg-primary/5 transition-all cursor-pointer flex flex-col items-center justify-center gap-3 p-4"
+          onClick={handleClick}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+          className={`relative aspect-square border-2 border-dashed rounded-lg cursor-pointer transition-all ${
+            isDragging
+              ? 'border-primary bg-primary/10'
+              : 'border-input hover:border-primary/50 hover:bg-muted/50'
+          }`}
         >
-          <Upload className="w-10 h-10 text-muted-foreground" />
-          <div className="text-sm text-muted-foreground">
-            <p>点击上传 {label}</p>
-            <p className="text-xs">支持 JPG、PNG 格式，最大 10MB</p>
-          </div>
           <input
             ref={fileInputRef}
             type="file"
-            accept="image/jpeg,image/png"
-            onChange={handleFileChange}
+            accept="image/*"
             className="hidden"
+            onChange={(e) => {
+              const files = e.target.files
+              if (files && files.length > 0) {
+                handleFile(files[0])
+              }
+            }}
           />
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-muted-foreground">
+            <div className={`p-3 rounded-full mb-4 transition-colors ${
+              isDragging ? 'bg-primary/20 text-primary' : 'bg-muted text-muted-foreground'
+            }`}>
+              <Upload className="w-6 h-6" />
+            </div>
+            <p className="text-sm font-medium">点击或拖拽上传图片</p>
+            <p className="text-xs text-muted-foreground mt-1">支持 JPG、PNG 格式</p>
+          </div>
         </div>
-      )}
-
-      {!value && (
-        <Button variant="secondary" size="sm" onClick={handleCameraStart}>
-          <Camera className="w-4 h-4 mr-2" />
-          使用摄像头拍照
-        </Button>
       )}
     </div>
   )
