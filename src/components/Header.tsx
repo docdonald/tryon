@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { User, LogOut, History, Sparkles } from 'lucide-react'
-import { Button } from './ui/button'
+import { Button } from '@/components/ui/button'
 import { supabase } from '../lib/supabase/client'
 
 interface HeaderProps {
@@ -14,16 +14,25 @@ export function Header({ onNavigate, currentPage, trialCount }: HeaderProps) {
 
   useEffect(() => {
     const checkUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      setUser(user)
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        setUser(user)
+      } catch (error) {
+        console.error('Error checking user:', error)
+        setUser(null)
+      }
     }
     checkUser()
   }, [])
 
   const handleLogout = async () => {
-    await supabase.auth.signOut()
-    setUser(null)
-    onNavigate('home')
+    try {
+      await supabase.auth.signOut()
+      setUser(null)
+      onNavigate('home')
+    } catch (error) {
+      console.error('Error signing out:', error)
+    }
   }
 
   return (
