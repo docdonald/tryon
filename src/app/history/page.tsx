@@ -100,6 +100,7 @@ export default function History() {
     <div className="min-h-screen">
       <Header 
         onNavigate={(page) => page === 'home' && (window.location.href = '/')}
+        onShowAuth={() => {}}
         currentPage="history"
         trialCount={0}
       />
