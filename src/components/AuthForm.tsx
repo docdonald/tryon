@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Mail, Eye, EyeOff } from 'lucide-react'
+import { User, Eye, EyeOff } from 'lucide-react'
+import { Turnstile } from '@marsidev/react-turnstile'
 import { Button } from './ui/button'
 import { Input } from './ui/input'
 import { Card, CardHeader, CardContent } from './ui/card'
@@ -12,24 +13,40 @@ type AuthMode = 'login' | 'register'
 
 export function AuthForm({ onSuccess }: AuthFormProps) {
   const [mode, setMode] = useState<AuthMode>('login')
-  const [email, setEmail] = useState('')
+  const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
 
-    if (!email || !password) {
+    if (!username || !password) {
       setError('请填写所有必填项')
+      return
+    }
+
+    if (username.length < 3) {
+      setError('用户名至少3个字符')
+      return
+    }
+
+    if (password.length < 6) {
+      setError('密码至少6个字符')
       return
     }
 
     if (mode === 'register' && password !== confirmPassword) {
       setError('两次输入的密码不一致')
+      return
+    }
+
+    if (!turnstileToken) {
+      setError('请完成人机验证')
       return
     }
 
@@ -39,14 +56,18 @@ export function AuthForm({ onSuccess }: AuthFormProps) {
       const response = await fetch(`/api/auth/${mode}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ username, password, turnstileToken }),
       })
 
       const data = await response.json()
 
       if (!response.ok) {
         setError(data.message || '操作失败')
+        // 重置验证状态
+        setTurnstileToken(null)
       } else {
+        // 登录/注册成功，保存用户信息到 localStorage
+        localStorage.setItem('user', JSON.stringify(data.user))
         onSuccess()
       }
     } catch {
@@ -74,13 +95,13 @@ export function AuthForm({ onSuccess }: AuthFormProps) {
         )}
         <form onSubmit={handleSubmit} className="space-y-4">
           <Input
-            label="邮箱"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="your@email.com"
+            label="用户名"
+            type="text"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            placeholder="请输入用户名"
             required
-            icon={<Mail className="w-4 h-4" />}
+            icon={<User className="w-4 h-4" />}
           />
           <div className="space-y-2">
             <label className="block text-sm font-medium text-foreground">密码</label>
@@ -89,7 +110,7 @@ export function AuthForm({ onSuccess }: AuthFormProps) {
                 type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
+                placeholder="请输入密码"
                 required
                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 pr-10 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
               />
@@ -108,10 +129,34 @@ export function AuthForm({ onSuccess }: AuthFormProps) {
               type="password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              placeholder="••••••••"
+              placeholder="请再次输入密码"
               required
             />
           )}
+          <div className="flex justify-center">
+            {(() => {
+              const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || '';
+              console.log('[Turnstile] SiteKey:', siteKey ? '已配置 (长度:' + siteKey.length + ')' : '未配置');
+              return (
+                <Turnstile
+                  siteKey={siteKey}
+                  onSuccess={(token) => {
+                    console.log('[Turnstile] 验证成功');
+                    setTurnstileToken(token);
+                  }}
+                  onError={(error) => {
+                    console.error('[Turnstile] 验证错误:', error);
+                    setError('人机验证失败，请重试 (错误代码: ' + (error || 'unknown') + ')');
+                  }}
+                  onExpire={() => {
+                    console.log('[Turnstile] Token 过期');
+                    setTurnstileToken(null);
+                  }}
+                  className="w-full max-w-xs"
+                />
+              );
+            })()}
+          </div>
           <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading ? '处理中...' : (mode === 'login' ? '登录' : '注册')}
           </Button>
@@ -119,7 +164,11 @@ export function AuthForm({ onSuccess }: AuthFormProps) {
         <p className="mt-4 text-center text-sm text-muted-foreground">
           {mode === 'login' ? '还没有账户？' : '已有账户？'}
           <button
-            onClick={() => setMode(mode === 'login' ? 'register' : 'login')}
+            onClick={() => {
+              setMode(mode === 'login' ? 'register' : 'login')
+              setError('')
+              setConfirmPassword('')
+            }}
             className="ml-1 text-primary hover:underline"
           >
             {mode === 'login' ? '立即注册' : '立即登录'}

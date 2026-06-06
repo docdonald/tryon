@@ -1,37 +1,48 @@
 import { useState, useEffect } from 'react'
 import { User, LogOut, History, Sparkles } from 'lucide-react'
 import { Button } from './ui/button'
-import { supabase } from '../lib/supabase/client'
+
+interface UserInfo {
+  id: number
+  username: string
+  created_at: string
+}
 
 interface HeaderProps {
   onNavigate: (page: 'home' | 'history') => void
+  onShowAuth: () => void
   currentPage: 'home' | 'history'
   trialCount: number
 }
 
-export function Header({ onNavigate, currentPage, trialCount }: HeaderProps) {
-  const [user, setUser] = useState<any>(null)
+export function Header({ onNavigate, onShowAuth, currentPage, trialCount }: HeaderProps) {
+  const [user, setUser] = useState<UserInfo | null>(null)
 
   useEffect(() => {
-    const checkUser = async () => {
+    const checkUser = () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser()
-        setUser(user)
+        const userStr = localStorage.getItem('user')
+        if (userStr) {
+          setUser(JSON.parse(userStr))
+        } else {
+          setUser(null)
+        }
       } catch (error) {
         console.error('Error checking user:', error)
         setUser(null)
       }
     }
     checkUser()
+
+    // 监听 storage 变化（登录/登出时更新）
+    window.addEventListener('storage', checkUser)
+    return () => window.removeEventListener('storage', checkUser)
   }, [])
 
-  const handleLogout = async () => {
-    try {
-      await supabase.auth.signOut()
-      window.location.reload()
-    } catch (error) {
-      console.error('Error logging out:', error)
-    }
+  const handleLogout = () => {
+    localStorage.removeItem('user')
+    setUser(null)
+    window.location.reload()
   }
 
   return (
@@ -67,13 +78,14 @@ export function Header({ onNavigate, currentPage, trialCount }: HeaderProps) {
                 <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
                   <User className="w-4 h-4 text-white" />
                 </div>
+                <span className="text-sm font-medium">{user.username}</span>
                 <Button variant="ghost" onClick={handleLogout} className="gap-2">
                   <LogOut className="w-4 h-4" />
                   退出
                 </Button>
               </div>
             ) : (
-              <Button>登录/注册</Button>
+              <Button onClick={onShowAuth}>登录/注册</Button>
             )}
           </div>
         </div>

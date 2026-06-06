@@ -7,9 +7,14 @@ import { LoadingSpinner } from '../components/LoadingSpinner'
 import { ResultDisplay } from '../components/ResultDisplay'
 import { AuthForm } from '../components/AuthForm'
 import { AuroraBackground } from '../components/AuroraBackground'
-import { supabase } from '../lib/supabase/client'
 
 type PageView = 'home' | 'auth' | 'history'
+
+interface UserInfo {
+  id: number
+  username: string
+  created_at: string
+}
 
 export default function Home() {
   const [currentView, setCurrentView] = useState<PageView>('home')
@@ -18,12 +23,16 @@ export default function Home() {
   const [isProcessing, setIsProcessing] = useState(false)
   const [resultUrl, setResultUrl] = useState<string | null>(null)
   const [trialCount, setTrialCount] = useState(10)
-  const [user, setUser] = useState<any>(null)
+  const [user, setUser] = useState<UserInfo | null>(null)
 
   useEffect(() => {
-    const checkUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      setUser(user)
+    const checkUser = () => {
+      const userStr = localStorage.getItem('user')
+      if (userStr) {
+        setUser(JSON.parse(userStr))
+      } else {
+        setUser(null)
+      }
     }
     checkUser()
 
@@ -56,6 +65,7 @@ export default function Home() {
         body: JSON.stringify({
           person_image: personImage,
           clothing_image: clothingImage,
+          user_id: user?.id,
         }),
       })
 
@@ -104,6 +114,7 @@ export default function Home() {
       <div className="relative z-10 w-full">
         <Header
           onNavigate={(page) => setCurrentView(page)}
+          onShowAuth={() => setCurrentView('auth')}
           currentPage="home"
           trialCount={trialCount}
         />

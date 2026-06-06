@@ -1,12 +1,13 @@
 import { NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase/server'
+import { createSupabaseClient } from '@/lib/supabase/server'
 import { tryOnService } from '@/services/tryon'
 
 export async function POST(request: Request) {
   console.log('[API] /api/tryon 接收到POST请求')
 
   try {
-    const { person_image, clothing_image } = await request.json()
+    const supabase = createSupabaseClient()
+    const { person_image, clothing_image, user_id } = await request.json()
     console.log('[API] 解析请求参数成功')
 
     if (!person_image || !clothing_image) {
@@ -17,8 +18,7 @@ export async function POST(request: Request) {
       )
     }
 
-    const { data: { user } } = await supabase.auth.getUser()
-    console.log('[API] 用户认证检查完成:', user ? `用户ID: ${user.id}` : '未登录用户')
+    console.log('[API] 用户认证检查完成:', user_id ? `用户ID: ${user_id}` : '未登录用户')
 
     console.log('[API] 调用TryOn Service...')
     const serviceResult = await tryOnService(person_image, clothing_image)
@@ -31,9 +31,9 @@ export async function POST(request: Request) {
       )
     }
 
-    if (user && serviceResult.resultUrl) {
+    if (user_id && serviceResult.resultUrl) {
       console.log('[API] 保存记录到数据库...')
-      await saveRecord(user.id, person_image, clothing_image, serviceResult.resultUrl)
+      await saveRecord(supabase, user_id, person_image, clothing_image, serviceResult.resultUrl)
     }
 
     console.log('[API] 请求处理成功')
@@ -51,7 +51,7 @@ export async function POST(request: Request) {
   }
 }
 
-async function saveRecord(userId: string, personImage: string, clothingImage: string, resultUrl: string) {
+async function saveRecord(supabase: ReturnType<typeof createSupabaseClient>, userId: number, personImage: string, clothingImage: string, resultUrl: string) {
   try {
     const { error } = await supabase.from('tryon_records').insert({
       user_id: userId,
