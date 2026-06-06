@@ -137,6 +137,13 @@ export function AuthForm({ onSuccess }: AuthFormProps) {
             {(() => {
               const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || '';
               console.log('[Turnstile] SiteKey:', siteKey ? '已配置 (长度:' + siteKey.length + ')' : '未配置');
+              if (!siteKey) {
+                return (
+                  <div className="text-xs text-red-500 bg-red-50 px-3 py-2 rounded">
+                    ⚠️ 人机验证未配置，请联系管理员设置 NEXT_PUBLIC_TURNSTILE_SITE_KEY
+                  </div>
+                );
+              }
               return (
                 <Turnstile
                   siteKey={siteKey}
