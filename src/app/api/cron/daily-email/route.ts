@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
 
   // 第二步：执行任务—给所有用户发提醒邮件
   try {
-    const results = await sendDailyLetterToAll()
+    const results = await sendDailyLoveLetterToAll()
     return NextResponse.json({
       success: true,
       message: '每日提醒发送完成',
