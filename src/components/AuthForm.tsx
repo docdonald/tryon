@@ -14,6 +14,7 @@ type AuthMode = 'login' | 'register'
 export function AuthForm({ onSuccess }: AuthFormProps) {
   const [mode, setMode] = useState<AuthMode>('login')
   const [username, setUsername] = useState('')
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -40,9 +41,20 @@ export function AuthForm({ onSuccess }: AuthFormProps) {
       return
     }
 
-    if (mode === 'register' && password !== confirmPassword) {
-      setError('两次输入的密码不一致')
-      return
+    if (mode === 'register') {
+      if (password !== confirmPassword) {
+        setError('两次输入的密码不一致')
+        return
+      }
+      if (!email) {
+        setError('请输入邮箱')
+        return
+      }
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      if (!emailRegex.test(email)) {
+        setError('请输入有效的邮箱地址')
+        return
+      }
     }
 
     if (!turnstileToken) {
@@ -56,7 +68,7 @@ export function AuthForm({ onSuccess }: AuthFormProps) {
       const response = await fetch(`/api/auth/${mode}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password, turnstileToken }),
+        body: JSON.stringify({ username, password, email, turnstileToken }),
       })
 
       const data = await response.json()
@@ -125,6 +137,16 @@ export function AuthForm({ onSuccess }: AuthFormProps) {
           </div>
           {mode === 'register' && (
             <Input
+              label="邮箱"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="请输入邮箱"
+              required
+            />
+          )}
+          {mode === 'register' && (
+            <Input
               label="确认密码"
               type="password"
               value={confirmPassword}
@@ -174,6 +196,7 @@ export function AuthForm({ onSuccess }: AuthFormProps) {
             onClick={() => {
               setMode(mode === 'login' ? 'register' : 'login')
               setError('')
+              setEmail('')
               setConfirmPassword('')
             }}
             className="ml-1 text-primary hover:underline"

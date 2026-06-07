@@ -11,8 +11,8 @@ export async function POST(request: Request) {
 
     console.log('[Register] 解析请求体...')
     // 从请求体中拿到前端传来的 turnstile token
-    const { turnstileToken, username, password } = await request.json()
-    console.log('[Register] 用户名:', username)
+    const { turnstileToken, username, password, email } = await request.json()
+    console.log('[Register] 用户名:', username, '邮箱:', email)
 
     // 去 Cloudflare 验证这个 token 是不是真的
     const verifyResponse = await fetch(
@@ -61,6 +61,13 @@ export async function POST(request: Request) {
       )
     }
 
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return NextResponse.json(
+        { success: false, message: '请输入有效的邮箱地址' },
+        { status: 400 }
+      )
+    }
+
     // 检查用户名是否已存在
     console.log('[Register] 检查用户名是否存在...')
     const { data: existingUser, error: checkError } = await supabase
@@ -86,6 +93,29 @@ export async function POST(request: Request) {
       )
     }
 
+    // 检查邮箱是否已存在
+    console.log('[Register] 检查邮箱是否存在...')
+    const { data: existingEmail, error: emailCheckError } = await supabase
+      .from('users')
+      .select('id')
+      .eq('email', email)
+      .maybeSingle()
+
+    if (emailCheckError) {
+      console.error('[Register] 邮箱查询错误:', emailCheckError)
+      return NextResponse.json(
+        { success: false, message: '数据库查询错误: ' + emailCheckError.message },
+        { status: 500 }
+      )
+    }
+
+    if (existingEmail) {
+      return NextResponse.json(
+        { success: false, message: '邮箱已被注册' },
+        { status: 400 }
+      )
+    }
+
     // 使用 bcrypt 加密密码
     console.log('[Register] 加密密码...')
     const hashedPassword = await bcrypt.hash(password, 10)
@@ -97,9 +127,10 @@ export async function POST(request: Request) {
       .from('users')
       .insert({
         username,
+        email,
         password: hashedPassword,
       })
-      .select('id, username, created_at')
+      .select('id, username, email, created_at')
       .single()
 
     console.log('[Register] 插入结果:', { newUser, error })
@@ -119,6 +150,7 @@ export async function POST(request: Request) {
       user: {
         id: newUser.id,
         username: newUser.username,
+        email: newUser.email,
         created_at: newUser.created_at,
       },
     })
