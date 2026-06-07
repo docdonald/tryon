@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server'
-import { sendDailyLetterToAll } from '@/lib/email'
+import { sendDailyLoveLetterToAll } from '@/lib/email'
 
 export async function POST(request: Request) {
   try {
     // 简单安全校验：防止被随意调用
     const authHeader = request.headers.get('authorization')
-    const expectedToken = process.env.SEND_EMAIL_SECRET
+    const expectedToken = process.env.SEND_EMAIL_SECRET || process.env.CRON_SECRET
 
     if (expectedToken && authHeader !== `Bearer ${expectedToken}`) {
       return NextResponse.json(
@@ -14,16 +14,11 @@ export async function POST(request: Request) {
       )
     }
 
-    const body = await request.json().catch(() => ({}))
-
-    const results = await sendDailyLetterToAll({
-      subject: body.subject || '每日精选',
-      content: body.content || '今天也是充满希望的一天，记得使用我们的 AI 试衣功能哦！',
-    })
+    const results = await sendDailyLoveLetterToAll()
 
     return NextResponse.json({
       success: true,
-      message: `邮件发送完成: ${results.sent} 成功, ${results.failed} 失败`,
+      message: `邮件发送完成: ${results.success} 成功, ${results.failed} 失败, 总计 ${results.total}`,
       data: results,
     })
   } catch (error: any) {

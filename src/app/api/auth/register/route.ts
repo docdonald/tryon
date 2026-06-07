@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
 import { createSupabaseClient } from '@/lib/supabase/server'
+import { sendWelcomeEmail } from '@/lib/email'
 
 export async function POST(request: Request) {
   console.log('[Register] 收到注册请求')
@@ -144,6 +145,16 @@ export async function POST(request: Request) {
     }
 
     console.log('[Register] 注册成功')
+
+    // 注册成功后，发送欢迎邮件（失败不影响注册）
+    try {
+      await sendWelcomeEmail(newUser.email, newUser.username)
+      console.log('[Register] 欢迎邮件发送成功')
+    } catch (error) {
+      console.error('[Register] 欢迎邮件发送失败：', error)
+      // 不 throw，不影响注册流程
+    }
+
     return NextResponse.json({
       success: true,
       message: '注册成功',

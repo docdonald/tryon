@@ -1,4 +1,4 @@
-import { sendDailyLetterToAll } from '@/lib/email'
+import { sendDailyLoveLetterToAll } from '@/lib/email'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function GET(request: NextRequest) {
