@@ -7,6 +7,7 @@ import { LoadingSpinner } from '../components/LoadingSpinner'
 import { ResultDisplay } from '../components/ResultDisplay'
 import { AuthForm } from '../components/AuthForm'
 import { AuroraBackground } from '../components/AuroraBackground'
+import { Footer } from '../components/Footer'
 
 type PageView = 'home' | 'auth' | 'history'
 
@@ -102,8 +103,11 @@ export default function Home() {
   if (currentView === 'auth') {
     return (
       <AuroraBackground>
-        <div className="relative z-10">
-          <AuthForm onSuccess={handleAuthSuccess} />
+        <div className="relative z-10 min-h-screen flex flex-col">
+          <div className="flex-1">
+            <AuthForm onSuccess={handleAuthSuccess} />
+          </div>
+          <Footer />
         </div>
       </AuroraBackground>
     )
@@ -111,29 +115,32 @@ export default function Home() {
 
   return (
     <AuroraBackground>
-      <div className="relative z-10 w-full">
+      <div className="relative z-10 w-full min-h-screen flex flex-col">
         <Header
           onNavigate={(page) => setCurrentView(page)}
           onShowAuth={() => setCurrentView('auth')}
           currentPage="home"
           trialCount={trialCount}
         />
-        {isProcessing ? (
-          <div className="flex flex-col items-center justify-center py-20">
-            <LoadingSpinner />
-          </div>
-        ) : resultUrl ? (
-          <ResultDisplay resultUrl={resultUrl} onRetry={handleRetry} />
-        ) : (
-          <Features
-            personImage={personImage}
-            clothingImage={clothingImage}
-            onPersonImageChange={setPersonImage}
-            onClothingImageChange={setClothingImage}
-            onGenerate={handleTryOn}
-            isProcessing={isProcessing}
-          />
-        )}
+        <div className="flex-1">
+          {isProcessing ? (
+            <div className="flex flex-col items-center justify-center py-20">
+              <LoadingSpinner />
+            </div>
+          ) : resultUrl ? (
+            <ResultDisplay resultUrl={resultUrl} onRetry={handleRetry} />
+          ) : (
+            <Features
+              personImage={personImage}
+              clothingImage={clothingImage}
+              onPersonImageChange={setPersonImage}
+              onClothingImageChange={setClothingImage}
+              onGenerate={handleTryOn}
+              isProcessing={isProcessing}
+            />
+          )}
+        </div>
+        <Footer />
       </div>
     </AuroraBackground>
   )

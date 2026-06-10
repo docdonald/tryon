@@ -1,4 +1,5 @@
 import '../index.css'
+import CrispChat from '@/components/crisp-chat'
 
 export default function RootLayout({
   children,
@@ -7,7 +8,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="zh-CN">
-      <body>{children}</body>
+      <body>
+        {children}
+        <CrispChat />
+      </body>
     </html>
   )
 }
