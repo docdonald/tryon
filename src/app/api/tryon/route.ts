@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import { createSupabaseClient } from '@/lib/supabase/server'
 import { tryOnService } from '@/services/tryon'
+import { uploadToR2 } from '@/lib/r2'
+import { nanoid } from 'nanoid'
 
 export async function POST(request: Request) {
   console.log('[API] /api/tryon 接收到POST请求')
@@ -31,14 +33,36 @@ export async function POST(request: Request) {
       )
     }
 
-    if (user_id && serviceResult.resultUrl) {
+    // AI 返回的是临时链接，需要下载并上传到 R2 获取永久链接
+    let permanentUrl = serviceResult.resultUrl
+    if (serviceResult.resultUrl) {
+      try {
+        console.log('[API] 下载AI生成的临时图片...')
+        const imageResponse = await fetch(serviceResult.resultUrl)
+        if (imageResponse.ok) {
+          const imageBuffer = Buffer.from(await imageResponse.arrayBuffer())
+          const fileName = `tryon/${nanoid()}.png`
+
+          console.log('[API] 上传到 R2...')
+          permanentUrl = await uploadToR2(imageBuffer, fileName, 'image/png')
+          console.log('[API] R2 永久链接:', permanentUrl)
+        } else {
+          console.warn('[API] 下载临时图片失败，继续使用原始链接')
+        }
+      } catch (uploadError) {
+        console.error('[API] 上传到 R2 失败:', uploadError)
+        // 上传失败时回退到原始临时链接
+      }
+    }
+
+    if (user_id && permanentUrl) {
       console.log('[API] 保存记录到数据库...')
-      await saveRecord(supabase, user_id, person_image, clothing_image, serviceResult.resultUrl)
+      await saveRecord(supabase, user_id, person_image, clothing_image, permanentUrl)
     }
 
     console.log('[API] 请求处理成功')
     return NextResponse.json(
-      { success: true, result_url: serviceResult.resultUrl },
+      { success: true, result_url: permanentUrl },
       { status: 200 }
     )
 

@@ -1,5 +1,4 @@
-import { Card, CardContent } from './ui/card';
-import { Upload, Shirt, Camera } from 'lucide-react';
+import { Upload, Shirt, Camera, ArrowRight } from 'lucide-react';
 import { useCallback } from 'react';
 import Pricing from './Pricing';
 
@@ -51,89 +50,130 @@ export function Features({
     }
   }, []);
 
-  const UploadCard = ({ icon: Icon, title, value, onChange }: { 
-    icon: React.ComponentType<any>;
-    title: string;
-    value: string | null;
-    onChange: (image: string | null) => void;
-  }) => {
-    return (
-      <Card className="group border border-border rounded-xl bg-background/80 backdrop-blur-sm">
-        <CardContent className="p-8">
-          <div className="relative w-full h-[360px] border-2 border-dashed border-border rounded-xl overflow-hidden flex flex-col items-center justify-center">
-            {value ? (
-              <img src={value} alt={title} className="w-full h-full object-contain" />
-            ) : (
-              <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
-                <div className="relative size-40">
-                  <div className="absolute inset-0 border border-current opacity-10" style={{ backgroundImage: 'linear-gradient(to right, currentColor 1px, transparent 1px), linear-gradient(to bottom, currentColor 1px, transparent 1px)', backgroundSize: '32px 32px' }} />
-                  <div className="bg-background absolute inset-0 m-auto flex size-16 items-center justify-center border-t-2 border-l-2 border-current">
-                    <Icon className="size-8" aria-hidden />
-                  </div>
-                </div>
-                <h3 className="mt-8 text-xl font-medium text-foreground">{title}</h3>
-                <p className="mt-2 text-sm text-muted-foreground">*</p>
-                
-                <label className="mt-6 flex flex-col items-center gap-3 border-2 border-border rounded-xl px-10 py-6 cursor-pointer hover:bg-accent hover:text-accent-foreground transition-all hover:border-accent">
-                  <Upload className="size-8" />
-                  <span className="text-base font-medium">点击上传</span>
-                  <span className="text-sm opacity-60">支持 JPG、PNG 格式，最大 10MB</span>
-                  <input type="file" accept="image/jpeg,image/png" className="hidden" onChange={(e) => handleFileChange(e, onChange)} />
-                </label>
-                
-                <button type="button" onClick={() => handleCamera(onChange)} className="mt-4 flex items-center gap-2 text-base text-muted-foreground hover:text-foreground transition-colors">
-                  <Camera className="size-5" />
-                  <span>使用摄像头拍照</span>
-                </button>
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-    );
-  };
+  const bothUploaded = personImage && clothingImage;
 
   return (
-    <div className="relative min-h-screen overflow-hidden">
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute inset-0" style={{
-          backgroundImage: 'repeating-linear-gradient(100deg, #fff 0%, #fff 7%, transparent 10%, transparent 12%, #fff 16%), repeating-linear-gradient(100deg, #3b82f6 10%, #818cf8 15%, #60a5fa 20%, #c4b5fd 25%, #60a5fa 30%)',
-          backgroundSize: '300%, 200%',
-          backgroundPosition: '50% 50%, 50% 50%',
-          filter: 'blur(10px)',
-          opacity: 0.5,
-          animation: 'aurora 20s ease-in-out infinite',
-        }} />
-      </div>
-      
-      <section className="py-16 md:py-32 relative z-10">
+    <div className="relative">
+      {/* Hero Section */}
+      <section className="pt-16 pb-20 md:pt-24 md:pb-28">
         <div className="max-w-6xl mx-auto px-6">
-          <div className="text-center relative">
-            <div className="absolute -inset-8 overflow-hidden rounded-3xl opacity-60 blur-xl">
-              <div className="absolute inset-0" style={{
-                backgroundImage: 'repeating-linear-gradient(100deg, #3b82f6 10%, #818cf8 15%, #60a5fa 20%, #c4b5fd 25%, #60a5fa 30%)',
-                backgroundSize: '300%, 200%',
-                backgroundPosition: '50% 50%, 50% 50%',
-                animation: 'aurora 20s ease-in-out infinite',
-              }} />
+          <div className="max-w-3xl mx-auto text-center animate-fade-up">
+            <div className="flex items-center justify-center gap-4 mb-8">
+              <div className="w-12 h-px bg-[#F97316]/30" />
+              <span className="text-xs uppercase tracking-[0.25em] text-[#F97316] font-medium">AI 时尚科技</span>
+              <div className="w-12 h-px bg-[#F97316]/30" />
             </div>
-            <h2 className="relative z-10 text-balance text-4xl font-semibold lg:text-5xl bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 bg-clip-text text-transparent">虚拟试衣 AI 黑科技</h2>
-            <p className="relative z-10 mt-4 text-lg text-slate-600">上传照片，AI 即可生成试穿效果，让你轻松看到衣服穿在身上的样子</p>
-          </div>
-          
-          <div className="mx-auto mt-12 grid max-w-2xl gap-8 md:max-w-5xl md:grid-cols-2">
-            <UploadCard icon={Upload} title="上传人物照片" value={personImage} onChange={onPersonImageChange} />
-            <UploadCard icon={Shirt} title="上传服装照片" value={clothingImage} onChange={onClothingImageChange} />
-          </div>
-
-          <div className="mt-10 text-center">
-            <button onClick={onGenerate} disabled={!personImage || !clothingImage || isProcessing} className="inline-flex items-center justify-center whitespace-nowrap rounded-xl text-lg font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 h-14 px-12 shadow-lg shadow-blue-500/25">
-              {isProcessing ? '生成中...' : '生成试穿效果'}
-            </button>
+            
+            <h1 className="font-serif text-5xl md:text-6xl lg:text-7xl text-[#111111] leading-[1.15] mb-6">
+              <span className="block">虚拟试衣</span>
+              <span className="block mt-1 text-[#F97316]/40">AI 黑科技</span>
+            </h1>
+            
+            <p className="text-[15px] md:text-base text-[#737373] leading-[1.8] max-w-lg mx-auto tracking-wide">
+              上传照片，AI 即可生成试穿效果，让你轻松看到衣服穿在身上的样子。无需出门，即可体验百变造型。
+            </p>
           </div>
         </div>
       </section>
-      
+
+      {/* Upload Section */}
+      <section className="pb-16 md:pb-24">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="grid md:grid-cols-2 gap-6 md:gap-8 max-w-4xl mx-auto">
+            {/* Person Upload */}
+            <div className="border border-[#E5E5E5] bg-white transition-all duration-500 hover:border-[#111111]/20">
+              <div className="p-6 md:p-8">
+                <div className="flex items-center gap-4 mb-6">
+                  <span className="text-xs text-[#737373] tracking-wider">01</span>
+                  <div className="flex-1 h-px bg-[#E5E5E5]" />
+                  <span className="text-sm text-[#111111] tracking-wide">人物照片</span>
+                </div>
+                
+                <div className="relative aspect-[4/3] border border-dashed border-[#E5E5E5] bg-[#FAFAFA] flex items-center justify-center overflow-hidden group hover:border-[#111111]/20 transition-all duration-500">
+                  {personImage ? (
+                    <img src={personImage} alt="人物" className="w-full h-full object-contain" />
+                  ) : (
+                    <div className="text-center p-8">
+                      <div className="w-12 h-12 mx-auto mb-4 border border-[#111111]/10 flex items-center justify-center">
+                        <Upload className="w-5 h-5 text-[#737373]" />
+                      </div>
+                      <p className="text-sm text-[#737373] mb-1">拖拽或点击上传</p>
+                      <p className="text-xs text-[#737373]/60">JPG、PNG，最大 10MB</p>
+                      <label className="mt-4 inline-block px-5 py-2 border border-[#111111] text-[#111111] text-xs tracking-wider cursor-pointer hover:bg-[#111111] hover:text-white transition-all duration-300">
+                        选择文件
+                        <input type="file" accept="image/jpeg,image/png" className="hidden" onChange={(e) => handleFileChange(e, onPersonImageChange)} />
+                      </label>
+                      <button 
+                        onClick={() => handleCamera(onPersonImageChange)}
+                        className="mt-3 flex items-center justify-center gap-2 mx-auto text-xs text-[#737373] hover:text-[#111111] transition-colors"
+                      >
+                        <Camera className="w-3.5 h-3.5" />
+                        <span>使用摄像头</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Clothing Upload */}
+            <div className="border border-[#E5E5E5] bg-white transition-all duration-500 hover:border-[#111111]/20">
+              <div className="p-6 md:p-8">
+                <div className="flex items-center gap-4 mb-6">
+                  <span className="text-xs text-[#737373] tracking-wider">02</span>
+                  <div className="flex-1 h-px bg-[#E5E5E5]" />
+                  <span className="text-sm text-[#111111] tracking-wide">服装照片</span>
+                </div>
+                
+                <div className="relative aspect-[4/3] border border-dashed border-[#E5E5E5] bg-[#FAFAFA] flex items-center justify-center overflow-hidden group hover:border-[#111111]/20 transition-all duration-500">
+                  {clothingImage ? (
+                    <img src={clothingImage} alt="服装" className="w-full h-full object-contain" />
+                  ) : (
+                    <div className="text-center p-8">
+                      <div className="w-12 h-12 mx-auto mb-4 border border-[#111111]/10 flex items-center justify-center">
+                        <Shirt className="w-5 h-5 text-[#737373]" />
+                      </div>
+                      <p className="text-sm text-[#737373] mb-1">拖拽或点击上传</p>
+                      <p className="text-xs text-[#737373]/60">JPG、PNG，最大 10MB</p>
+                      <label className="mt-4 inline-block px-5 py-2 border border-[#111111] text-[#111111] text-xs tracking-wider cursor-pointer hover:bg-[#111111] hover:text-white transition-all duration-300">
+                        选择文件
+                        <input type="file" accept="image/jpeg,image/png" className="hidden" onChange={(e) => handleFileChange(e, onClothingImageChange)} />
+                      </label>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Generate Button */}
+          <div className="mt-12 text-center">
+            <button
+              onClick={onGenerate}
+              disabled={!bothUploaded || isProcessing}
+              className="group relative inline-flex items-center gap-3 px-12 py-4 bg-[#111111] text-white text-sm tracking-[0.15em] font-medium transition-all duration-300 hover:bg-[#111111]/85 disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              <span>{isProcessing ? '生成中...' : '生成试穿效果'}</span>
+              {!isProcessing && <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />}
+              
+              {/* Decorative corner */}
+              {bothUploaded && !isProcessing && (
+                <>
+                  <div className="absolute top-0 right-0 w-2 h-px bg-[#F97316]/60" />
+                  <div className="absolute top-0 right-0 w-px h-2 bg-[#F97316]/60" />
+                </>
+              )}
+            </button>
+            
+            {!bothUploaded && (
+              <p className="mt-4 text-xs text-[#737373]/60 tracking-wide">
+                请上传人物照片和服装照片以开始试衣
+              </p>
+            )}
+          </div>
+        </div>
+      </section>
+
       <Pricing />
     </div>
   );

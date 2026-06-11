@@ -8,10 +8,12 @@
     "start": "next start -p 5000"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1065.0",
     "@marsidev/react-turnstile": "^1.5.2",
     "@supabase/auth-helpers-nextjs": "^0.10.0",
     "@supabase/supabase-js": "^2.45.0",
     "lucide-react": "^0.436.0",
+    "nanoid": "^5.1.11",
     "next": "14.2.14",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

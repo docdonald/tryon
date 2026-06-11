@@ -7,7 +7,7 @@ import { LoadingSpinner } from '../components/LoadingSpinner'
 import { ResultDisplay } from '../components/ResultDisplay'
 import { AuthForm } from '../components/AuthForm'
 import { AuroraBackground } from '../components/AuroraBackground'
-import { Footer } from '../components/Footer'
+import Footer from '../components/Footer'
 
 type PageView = 'home' | 'auth' | 'history'
 
